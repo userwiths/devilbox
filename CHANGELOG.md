@@ -6,6 +6,191 @@ Make sure to have a look at [UPDATING.md](https://github.com/cytopia/devilbox/bl
 ## Unreleased
 
 
+## Release v2.2.0 (2022-04-14)
+
+This release adds PHP-FPM community images via `docker-compose.override.yml`, which easily allows you
+to build upon existing PHP images and customize them for your usecase/workflow.
+
+#### Added
+- Added PHP-FPM Community images: https://github.com/devilbox/docker-php-fpm-community/
+
+
+## Release v2.1.1 (2022-04-07)
+
+#### Changed
+- Used tagged PHP images (auto-updating)instead early release branch one.
+
+
+## Release v2.1.0 (2022-04-05)
+
+This is now a 100% `arm64` compatible release.
+
+#### Fixed
+- Fixed imklog: cannot open kernel log (/proc/kmsg): Operation not permitted.
+- Fixed missing `arm64` support: [#855](https://github.com/cytopia/devilbox/issues/855)
+
+#### Added
+- Added PHP images with `arm64` support for PHP: https://github.com/devilbox/docker-php-fpm/releases/tag/0.138
+- Added `vips` to PHP 8.0
+- Added `vips` to PHP 8.1
+- Added `swoole` to PHP 8.1
+
+#### Removed
+- Removed homebrew due to arm64 issues
+- Removed Ansible due to arm64 issues
+
+
+## Release v2.0.0 (2022-03-28)
+
+The goal of this release is to reduce the overall size of Docker images and bring in latest versions.
+
+**Important:** This release introduces backwards incompatible changes due to only keeping major versions of PostreSQL and therefore removing old volumes. Additionally the PostgreSQL volume names have changed. In order to guarantee a smooth transition, backup your PostgreSQL databases in the previous version before switching and then re-importing them in this version.
+
+#### Added
+- Added CakePHP integration tests for PHP 8+
+- Added `.env` variable `HTTPD_FLAVOUR` to decide between `Debian` or `Alpine` for HTTP server
+
+#### Changed
+- Changed default PostgreSQL server from `12.4` to `14-alpine` (breaking change)
+- Changed default Redis server from `6.0` to `6.2-alpine`
+- Changed default Memcached server from `1.6` to `1.6-alpine`
+- Changed default MongoDB server from `4.4` to `5.0`
+- Changed default HTTPD server flavour from `Debian` to `Alpine`
+- Use tiny Alpine version of Bind container
+
+#### Removed
+- Removed CI for MongoDB `2.8` and MongoDB `3.0` due to segfault: https://github.com/docker-library/mongo/issues/251
+
+
+## Release v1.11.0 (2022-03-22)
+
+#### Fixed
+- Fixed pidof issue on QUEMU by replacing it with pgrep #854
+- Fixed array definition for PHP < 5.4
+- Fixed bind caching issue  [#37](https://github.com/cytopia/docker-bind/pull/37)
+- Fixed Adminer 4.8.1 CSS issues [#867](https://github.com/cytopia/devilbox/issues/867)
+
+#### Added
+- Allow to globally enable/disable HTTP/2 [#844](https://github.com/cytopia/devilbox/issues/844)
+- Added New `.env` variable: `HTTPD_HTTP2_ENABLE`
+
+#### Changed
+- Make MariaDB 10.6 the default
+- Make PHP 8.1 the default
+- Updated Apache 2.2
+- Updated Apache 2.4
+- Updated Nginx stable
+- Updated Nginx mainline
+- Updated PHP-FPM images [#230](https://github.com/devilbox/docker-php-fpm/pull/230)
+- Updated PHP-FPM images [#231](https://github.com/devilbox/docker-php-fpm/pull/231)
+- Updated phpMyAdmin to 5.1.3
+
+
+## Release v1.10.5 (2022-03-16)
+
+#### Added
+- Added MariaDB 10.8
+
+#### Changed
+- Updated Bind [#36](https://github.com/cytopia/docker-bind/pull/36)
+- Updated MySQL
+
+
+## Release v1.10.4 (2022-02-15)
+
+#### Fixed
+- Fixed SSL-Cache Mutex on M1 CPU [#862](https://github.com/cytopia/devilbox/issues/862)
+
+#### Changed
+- Changed Intranet mail tester to using POST instead of GET for larger body size
+- Made vhost error message more verbose
+- Updated Nginx Stable [#36](https://github.com/devilbox/docker-nginx-stable/pull/36)
+- Updated Nginx Mainline [#39](https://github.com/devilbox/docker-nginx-mainline/pull/39)
+- Updated Apache 2.2 [#33](https://github.com/devilbox/docker-apache-2.2/pull/33)
+- Updated Apache 2.4 [#35](https://github.com/devilbox/docker-apache-2.4/pull/35)
+
+
+## Release v1.10.3 (2022-02-04)
+
+#### Added
+- Added PHP 8.2
+
+#### Changed
+- Updated PHP-FPM images [#225](https://github.com/devilbox/docker-php-fpm/pull/225)
+- Updated PHP-FPM images [#226](https://github.com/devilbox/docker-php-fpm/pull/226)
+
+
+## Release v1.10.2 (2022-02-02)
+
+#### Fixed
+- Fixed `nvm` PATH priority [#846](https://github.com/cytopia/devilbox/issues/846)
+
+#### Added
+- Added extension `sqlsrv` to php 8.1
+- Added extension `pdo_sqlsrv` to php 8.1
+
+#### Changed
+- Changed postfix hostname to `localhost` instead of GitHub runners long name
+- Updated PHP-FPM images [#224](https://github.com/devilbox/docker-php-fpm/pull/224)
+
+
+## Release v1.10.1 (2022-01-30)
+
+#### Fixed
+- Fixed evaluation of `MASS_VHOST_SSL_GEN` env var [#830](https://github.com/cytopia/devilbox/issues/830)
+
+#### Added
+- Added feature to delete emails from within control center [#754](https://github.com/cytopia/devilbox/issues/754)
+
+#### Changed
+- Updated Nginx Stable [#35](https://github.com/devilbox/docker-nginx-stable/pull/35)
+- Updated Nginx Mainline [#38](https://github.com/devilbox/docker-nginx-mainline/pull/38)
+- Updated Apache 2.2 [#32](https://github.com/devilbox/docker-apache-2.2/pull/32)
+- Updated Apache 2.4 [#34](https://github.com/devilbox/docker-apache-2.4/pull/34)
+
+
+## Release v1.10.0 (2022-01-28)
+
+#### Fixed
+- Fixed mail.php to correctly show UTF chars in Body [#850](https://github.com/cytopia/devilbox/issues/850)
+- Fixed desc in env-example [#807](https://github.com/cytopia/devilbox/issues/807)
+
+#### Added
+- Added binary `sqlite3` to all PHP images [#856](https://github.com/cytopia/devilbox/issues/856)
+- Added binary `laravel` to PHP 8.0 and PHP 8.1 [#823](https://github.com/cytopia/devilbox/issues/823)
+- Added AVIF support in GD for PHP 8.1 [#834](https://github.com/cytopia/devilbox/issues/834)
+- Added extension `amqp` to PHP 8.0 and PHP 8.1 [#826](https://github.com/cytopia/devilbox/issues/826)
+- Added extension `uploadprogress` to PHP 8.0 and PHP 8.1 [#158](https://github.com/devilbox/docker-php-fpm/pull/158)
+- Added extension `imagick` to PHP 8.0 and PHP 8.1
+- Added extension `rdkafka` to PHP 8.0 and PHP 8.1
+- Added extension `xlswriter` to PHP 8.1
+- Added extension `pdo_dblib` to PHP 8.1
+- Added extension `uuid` to all PHP versions (except 5.2)
+- Added MySQL image: MariaDB 10.6
+- Added MySQL image: MariaDB 10.7
+
+#### Changed
+- Updated `php-cs-fixer` to latest version [#219](https://github.com/devilbox/docker-php-fpm/pull/219)
+- Updated Nginx Stable [#33](https://github.com/devilbox/docker-nginx-stable/pull/33)
+- Updated Nginx Stable [#34](https://github.com/devilbox/docker-nginx-stable/pull/34)
+- Updated Nginx Mainline [#36](https://github.com/devilbox/docker-nginx-mainline/pull/36)
+- Updated Nginx Mainline [#37](https://github.com/devilbox/docker-nginx-mainline/pull/37)
+- Updated Apache 2.2 [#30](https://github.com/devilbox/docker-apache-2.2/pull/30)
+- Updated Apache 2.2 [#31](https://github.com/devilbox/docker-apache-2.2/pull/31)
+- Updated Apache 2.4 [#32](https://github.com/devilbox/docker-apache-2.4/pull/32)
+- Updated Apache 2.4 [#33](https://github.com/devilbox/docker-apache-2.4/pull/33)
+
+
+## Release v1.9.3 (2022-01-24)
+
+#### Fixed
+- Updated PHP Docker Images: [#221](https://github.com/devilbox/docker-php-fpm/pull/221)
+- Updated PHP Docker Images: [#222](https://github.com/devilbox/docker-php-fpm/pull/222)
+- Update MySQL Docker Images: [#10](https://github.com/devilbox/docker-mysql/pull/10)
+- Fixed documentation build issues
+- Fixed intranet PHP code to work with legacy versions
+
+
 ## Release v1.9.2 (2021-06-04)
 
 #### Added
