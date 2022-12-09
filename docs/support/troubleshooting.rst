@@ -135,7 +135,7 @@ have to get support from the docker/for-mac GitHub repository or forum.
 
 .. seealso::
    * https://github.com/cytopia/devilbox/issues/539
-   * https://github.com/docker/for-mac/issues/371#issuecomment-242047368
+   * https://github.com/docker/for-mac/issues/371
    * https://forums.docker.com/t/no-space-left-on-device-error/10894
 
 
@@ -378,6 +378,13 @@ to read-only by applying the following ``chmod`` command.
 .. seealso::
    * :ref:`my_cnf`
    * https://github.com/cytopia/devilbox/issues/212
+
+[MariaDB] Assertion failure when executing prepared statement with ? in IN list
+-------------------------------------------------------------------------------
+
+Some MariaDB versions are affected by MDEV-27937 bug, use a fixed version or set in_predicate_conversion_threshold variable to a higher value.
+
+.. seealso:: https://jira.mariadb.org/browse/MDEV-27937
 
 
 Docker Toolbox

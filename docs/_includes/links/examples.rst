@@ -4,7 +4,13 @@
      Official CakePHP Documentation <img src="https://raw.githubusercontent.com/cytopia/icons/master/11x11/ext-link.png" />
    </a>
 
-.. |ext_lnk_example_codeignitor_documentation| raw:: html
+.. |ext_lnk_example_codeigniter_documentation| raw:: html
+
+   <a target="_blank" href="https://www.codeigniter.com/userguide3/installation/index.html">
+     Official CodeIgniter Documentation <img src="https://raw.githubusercontent.com/cytopia/icons/master/11x11/ext-link.png" />
+   </a>
+
+.. |ext_lnk_example_codeigniter4_documentation| raw:: html
 
    <a target="_blank" href="https://www.codeigniter.com/user_guide/installation/index.html">
      Official CodeIgniter Documentation <img src="https://raw.githubusercontent.com/cytopia/icons/master/11x11/ext-link.png" />
@@ -72,13 +78,13 @@
 
 .. |ext_lnk_example_phalcon_documentation| raw:: html
 
-   <a target="_blank" href="https://docs.phalconphp.com/latest/en/devtools-usage">
+   <a target="_blank" href="https://docs.phalcon.io/4.0/en/environments-devilbox">
      Official Phalcon Documentation  <img src="https://raw.githubusercontent.com/cytopia/icons/master/11x11/ext-link.png" />
    </a>
 
 .. |ext_lnk_example_photon_cms| raw:: html
 
-   <a target="_blank" href="https://photoncms.com/resources/installing">
+   <a target="_blank" href="https://docs.photoncms.com/">
      Official Photon CMS Documentation <img src="https://raw.githubusercontent.com/cytopia/icons/master/11x11/ext-link.png" />
    </a>
 

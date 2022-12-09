@@ -44,7 +44,7 @@ copied to a file named ``.env``. (Pay attention to the leading dot).
 
    host> cp env-example .env
 
-The ``.env`` file does nothing else then providing environment variables for Docker Compose
+The ``.env`` file does nothing else than providing environment variables for Docker Compose
 and in this case it is used as the main configuration file for the Devilbox by providing all kinds
 of settings (such as which version to start up).
 
@@ -148,7 +148,7 @@ Ensure to read the links below to understand why this problem exists and how the
 The Docker documentation will also give you alternative caching options to consider.
 
 .. seealso::
-   * https://github.com/cytopia/devilbox/issues/105#issuecomment-426229921
+   * https://github.com/cytopia/devilbox/issues/105
    * https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076/281
    * https://docs.docker.com/docker-for-mac/osxfs/
    * :ref:`env_mount_options`

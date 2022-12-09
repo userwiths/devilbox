@@ -263,9 +263,10 @@ HTML;
 			<nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse footer">
 				<div class="container justify-content-end">
 					<ul class="nav navbar-nav">
-						<li class="nav-item nav-link">Render time: ${render_time} sec</li>
+						<li class="nav-item nav-link">Render time: {$render_time} sec</li>
 						<li class="nav-item"><a class="nav-link" target="_blank" href="https://github.com/cytopia/devilbox"><code>Github</code></a></li>
 						<li class="nav-item"><a class="nav-link" href="/credits.php"><code>Credits</code></a></li>
+						<li class="nav-item"><a class="nav-link" href="/support.php"><code>Support</code></a></li>
 						<li class="nav-item"><a class="nav-link" href="/debug.php"><code>Debug ({$errors})</code></a></li>
 					</ul>
 				</div>
@@ -419,7 +420,7 @@ HTML;
 						} elseif (version_compare(loadClass('Php')->getVersion(), '7.1', '<')) {
 							$el['path'] = '/vendor/phpmyadmin-4.9.7/index.php';
 						} else {
-							$el['path'] = '/vendor/phpmyadmin-5.0.4/index.php';
+							$el['path'] = '/vendor/phpmyadmin-5.1.3/index.php';
 						}
 					}
 					if ($el['path'] == '__PHPPGADMIN__') {
