@@ -17,11 +17,12 @@ export ADMIN_USER="s.tonev";
 export ADMIN_PASSWORD="Qwerty_2_Qwerty";
 
 alias magento_access=' chmod -R 777 {var,generated,pub,vendor,app/etc}';
-alias rebuild='rm -fr generated/code/*; chmod -R 777 generated; php bin/magento setup:upgrade && php bin/magento setup:di:compile && php bin/magento setup:static-content:deploy -f && php bin/magento c:c && php bin/magento c:f && magento_access';
-alias update='composer update && rebuild';
 alias cache='php bin/magento c:c; php bin/magento c:f; magento_access';
+alias rebuild='rm -fr generated/code/*; chmod -R 777 generated; php bin/magento setup:upgrade && php bin/magento setup:di:compile && php bin/magento setup:static-content:deploy -f; cache;';
+alias update='composer update && rebuild';
 alias mysqlconnect="mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_SERVER ";
 alias mkdir='mkdir -p';
+alias magento_logs='tail var/log/* '
 
 install_project() {
 	# $1 project name.
