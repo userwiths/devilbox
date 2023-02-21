@@ -484,6 +484,39 @@ services:
       - httpd
 
 
+# --------------------------------------------------------------
+#  Elastic Search
+# --------------------------------------------------------------
+  elasticsearch:
+    image: elasticsearch:7.14.1
+    hostname: elastic
+    container_name: elasticsearch
+    mem_limit: 2048m
+    environment:
+      - discovery.type=single-node
+    volumes:
+      - elastic-data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.26
+        
+# --------------------------------------------------------------
+#  Varnish
+# --------------------------------------------------------------
+  varnish:
+    image: varnish:7.0.0
+    hostname: varnish
+    container_name: varnish
+    volumes:
+      - varnish-data:/usr/share/varnish/data
+    ports:
+      - 8080:8080
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.27
+
 ################################################################################
 # NETWORK
 ################################################################################
@@ -552,6 +585,7 @@ volumes:
   devilbox-pgsql-11:
   devilbox-pgsql-11-alpine:
   devilbox-pgsql-12:
+  devilbox-pgsql-12.4:
   devilbox-pgsql-12-alpine:
   devilbox-pgsql-13:
   devilbox-pgsql-13-alpine:
@@ -575,3 +609,13 @@ volumes:
   devilbox-mongo-4.4:
   devilbox-mongo-5.0:
   devilbox-mongo-latest:
+  
+  # ------------------------------------------------------------
+  # Elastic Search
+  # ------------------------------------------------------------
+  elastic-data: 
+  
+  # ------------------------------------------------------------
+  # Varnish
+  # ------------------------------------------------------------
+  varnish-data: 
