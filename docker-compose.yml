@@ -489,6 +489,7 @@ services:
     image: elasticsearch:7.14.1
     hostname: elastic
     container_name: elasticsearch
+    mem_limit: 2048m
     environment:
       - discovery.type=single-node
     volumes:
@@ -582,6 +583,7 @@ volumes:
   devilbox-pgsql-11:
   devilbox-pgsql-11-alpine:
   devilbox-pgsql-12:
+  devilbox-pgsql-12.4:
   devilbox-pgsql-12-alpine:
   devilbox-pgsql-13:
   devilbox-pgsql-13-alpine:

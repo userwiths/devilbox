@@ -40,3 +40,17 @@ install_project() {
 		--elasticsearch-host="$ELASTIC_SERVER" --use-rewrites=1;
 	rebuild;
 }
+magento_modules_enable () {
+	php bin/magento module:enable $(php bin/magento module:status | grep "$1")
+}
+
+magento_modules_disable () {
+	php bin/magento module:disable $(php bin/magento module:status | grep "$1")
+}
+magento_user () {
+	php bin/magento admin:create:user --name "$1" --password "Qwerty_2_Qwerty" --email "$1.mailinator.com"
+}
+magento_data () {
+	php bin/magento indexer:reindex;
+	php bin/magento cron:run;
+}
