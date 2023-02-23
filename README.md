@@ -4,6 +4,8 @@
 
 ![Devilbox](docs/img/banner.png)
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 **[Quickstart](#-quickstart)** |
 **[Examples](#-examples)** |
 **[Features](#star-features)** |
@@ -1221,6 +1223,96 @@ The Devilbox is still a young project with a long roadmap ahead. Features are de
 * Open up issues for bugs and feature requests
 * Clone this project and submit fixes or features
 
+=======
+**[Preface](#preface)**
+**[Commands](#commands)**
+**[Logos](#logos)** |
+**[License](#license)**
+=======
+**[Preface](#preface)**
+**[Commands](#commands)**
+**[Logos](#logos)** |
+**[License](#license)**
+
+## Preface
+This is a fork of the `devilbox` project maintained & developed by **[cytopia](https://github.com/cytopia)**
+This fork is mostly a setup that i have adapted to my specific daily needs and might be a bit more narrower than the main repo.
+I dont think this fork is 100% interchangeable with the main project, but you can try if you feel like it. 
+
+## Commands
+A short list of custom `bash` aliases/functions for day to day use.
+
+### Variables
+| Name| Default| Used By|
+|----|----|----|----|
+| `MYSQL_SERVER`| Default|Used By|
+| `ELASTIC_SERVER`| Default|Used By|
+| `MYSQL_USER`| Default|Used By|
+| `MYSQL_PASSWORD`| Default|Used By|
+| `ADMIN_USER`| Default|Used By|
+| `ADMIN_PASSWORD`| Default|Used By|
+|----|----|----|----|
+
+### Alias-es
+| Name| Purpose| Require|
+|----|----|----|----|
+| `magento_access`| Grants `777` access to the `var`,`generated`,`pub`,`vendor` & `app/etc` folders.|--|
+| `rebuild`       | RUns `setup:upgrade`, `setup:di:compile`, `setup:static-content:deploy` & clears cache and sets correct folder permissions.|`cache`|
+| `update`        | Runs `composer update` and the `rebuild` alias after.|`rebuild`|
+| `cache`         | Clears cache. |`magento_access`|
+| `mysqlconnect`  | Connects to the `mysql` server. |`MYSQL_USER`, `MYSQL_PASSWORD`|
+| `mkdir`         | Alias for `mkdir -p`|--|
+| `magento_logs`  | `tail` magento's log files|--|
+
+### Functions
+| Name| Args| Function|
+|----|----|----|----|
+| `magento_data`| -- |Runs `reindex` and `cron` jobs.|
+| `magento_modules_enable` | text that will be passed to `grep` | Enables all modules containing a certain text .|
+| `magento_modules_disable`        |text that will be passed to `grep` | Disables all modules containing a certain text .|
+| `magento_user`         | Clears cache. |`magento_access`|
+| `install_project`  | `$1` as project name and `$2` as url to pass to git clone |Attempts to create a directory structure of `$1/$1` where `$1` is the project name. Creates a databse with name `$1`. Runs `composer install` and the `magento install` command|
+>>>>>>> Stashed changes
+
+## Preface
+This is a fork of the `devilbox` project maintained & developed by **[cytopia](https://github.com/cytopia)**
+This fork is mostly a setup that i have adapted to my specific daily needs and might be a bit more narrower than the main repo.
+I dont think this fork is 100% interchangeable with the main project, but you can try if you feel like it. 
+
+## Commands
+A short list of custom `bash` aliases/functions for day to day use.
+
+### Variables
+| Name| Default| Used By|
+|----|----|----|----|
+| `MYSQL_SERVER`| Default|Used By|
+| `ELASTIC_SERVER`| Default|Used By|
+| `MYSQL_USER`| Default|Used By|
+| `MYSQL_PASSWORD`| Default|Used By|
+| `ADMIN_USER`| Default|Used By|
+| `ADMIN_PASSWORD`| Default|Used By|
+|----|----|----|----|
+
+### Alias-es
+| Name| Purpose| Require|
+|----|----|----|----|
+| `magento_access`| Grants `777` access to the `var`,`generated`,`pub`,`vendor` & `app/etc` folders.|--|
+| `rebuild`       | RUns `setup:upgrade`, `setup:di:compile`, `setup:static-content:deploy` & clears cache and sets correct folder permissions.|`cache`|
+| `update`        | Runs `composer update` and the `rebuild` alias after.|`rebuild`|
+| `cache`         | Clears cache. |`magento_access`|
+| `mysqlconnect`  | Connects to the `mysql` server. |`MYSQL_USER`, `MYSQL_PASSWORD`|
+| `mkdir`         | Alias for `mkdir -p`|--|
+| `magento_logs`  | `tail` magento's log files|--|
+
+### Functions
+| Name| Args| Function|
+|----|----|----|----|
+| `magento_data`| -- |Runs `reindex` and `cron` jobs.|
+| `magento_modules_enable` | text that will be passed to `grep` | Enables all modules containing a certain text .|
+| `magento_modules_disable`        |text that will be passed to `grep` | Disables all modules containing a certain text .|
+| `magento_user`         | Clears cache. |`magento_access`|
+| `install_project`  | `$1` as project name and `$2` as url to pass to git clone |Attempts to create a directory structure of `$1/$1` where `$1` is the project name. Creates a databse with name `$1`. Runs `composer install` and the `magento install` command|
+>>>>>>> Stashed changes
 
 
 ## 🧘 Maintainer
