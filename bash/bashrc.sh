@@ -1,13 +1,3 @@
-# Bashrc folder
-#
-# 1. This folder will be mounted to /etc/bashrc-devilbox.d
-# 2. All files ending by *.sh will be sourced by bash automatically
-#    for the devilbox and root user.
-#
-
-
-# Add your custom vimrc and always load it with vim.
-# Also make sure you add vimrc to this folder.
 #!/bin/bash
 
 export MYSQL_SERVER="172.16.238.12";
@@ -16,10 +6,11 @@ export MYSQL_USER="root";
 export MYSQL_PASSWORD="root";
 export ADMIN_USER="s.tonev";
 export ADMIN_PASSWORD="Qwerty_2_Qwerty";
+export DEPLOY_LANGUAGES="bg_BG en_US";
 
-alias magento_access=' chmod -R 777 {var,generated,pub,vendor,app/etc}';
+alias magento_access='chmod -R 777 {var,generated,pub,vendor,app/etc}';
 alias cache='php bin/magento c:c; php bin/magento c:f; magento_access';
-alias rebuild='rm -fr generated/code/*; chmod -R 777 generated; php bin/magento setup:upgrade ;php bin/magento setup:di:compile; php bin/magento setup:static-content:deploy -f; cache';
+alias rebuild='rm -fr generated/code/*; chmod -R 777 generated; php bin/magento setup:upgrade ;php bin/magento setup:di:compile; magento_deploy_themes; cache';
 alias update='composer update && rebuild';
 alias mysql="mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_SERVER ";
 alias mysqldump="mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_SERVER ";
@@ -66,11 +57,27 @@ magento_disable_sign() {
 		mysql -e "update $database.core_config_data set value = 0 where path = 'dev/static/sign';";
 	fi;
 }
-magento_themes () {
-	echo $(find app/design/frontend -type d -maxdepth 2);
-	#for a in $(find app/design/frontend/ -maxdepth 2 -type d -not -empty);do 
-	#	echo $(echo "$a" | cut -d"/" -c 3-4); 
-	#done;
+magento_frontend_themes () {
+	for themes in $(find app/design/frontend/ -maxdepth 2 -type d -not -empty -not -name "luma" -not -name "blank");do 
+		echo $(echo "$themes"| awk -F '/' 'NF == 5 {print $4 "/" $5}'); 
+	done;
+}
+magento_backend_themes () {
+	for themes in $(find app/design/adminhtml/ -maxdepth 2 -type d -not -empty);do 
+		echo $(echo "$themes"| awk -F '/' 'NF == 5 {print $4 "/" $5}'); 
+	done;
+}
+
+magento_deploy_themes () {
+	# Frontend Themes
+	for theme in $(magento_frontend_themes); do
+		php bin/magento setup:static-content:deploy -f --area frontend --theme "$theme" --no-parent $DEPLOY_LANGUAGES;
+	done;
+
+	# Backend Themes
+	for theme in $(magento_backend_themes); do
+		php bin/magento setup:static-content:deploy -f --area adminhtml --theme "$theme" --no-parent $DEPLOY_LANGUAGES;
+	done;
 }
 
 magento_install() {
@@ -88,7 +95,9 @@ magento_install() {
 	cd /shared/httpd || exit;
 	
 	if [[ ! -d "$1/$1" ]]; then
-		if [[ ! -d "$1" ]]; then
+		if [[ -d "/shared/https/$1" ]]; then
+			cd "$1";
+		else
 			mkdir "$1";
 			cd "$1"  || exit;
 		fi;		
@@ -113,7 +122,7 @@ magento_install() {
 	fi;
 	
 	# Disable most non-default modules.
-	php bin/magento module:disable $(php bin/magento module:status | grep "Mageplaza\|Amasty\|TwoFactor\|Beluga");
+	php bin/magento module:disable $(php bin/magento module:status | grep "Mageplaza\|Amasty\|TwoFactor\|Beluga\|Swissup");
 
 	# Install project
 	sudo php bin/magento setup:install \
@@ -126,7 +135,7 @@ magento_install() {
 	# Enable non-default & rebuild again.
 	magento_disable_cache;
 	magento_disable_sign "$1";
-	php bin/magento module:enable $(php bin/magento module:status | grep  "Mageplaza\|Amasty\|Beluga");
+	php bin/magento module:enable $(php bin/magento module:status | grep  "Mageplaza\|Amasty\|Beluga\|Swissup");
 	rebuild;
 	
 	# devilbox specific.
@@ -158,6 +167,8 @@ magento_restore () {
 	mysql -e "update $database.core_config_data set value = 'http://$database.loc/' where path like '%base_url';";
 	mysql -e "update $database.core_config_data set value = 'http://$database.loc/static/' where path like '%base_static_url';";
 	mysql -e "update $database.core_config_data set value = 'http://$database.loc/media/' where path like '%base_media_url';";
+	magento_disable_sign "$database";
+	magento_cache;
 }
 
 echo "=========================================================================================================";
