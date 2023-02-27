@@ -7,6 +7,7 @@ export MYSQL_PASSWORD="root";
 export ADMIN_USER="s.tonev";
 export ADMIN_PASSWORD="Qwerty_2_Qwerty";
 export DEPLOY_LANGUAGES="bg_BG en_US";
+export GITHUB_USER="stiliyantonev";
 
 alias magento_access='chmod -R 777 {var,generated,pub,vendor,app/etc}';
 alias cache='php bin/magento c:c; php bin/magento c:f; magento_access';
@@ -65,6 +66,11 @@ magento_frontend_themes () {
 magento_backend_themes () {
 	for themes in $(find app/design/adminhtml/ -maxdepth 2 -type d -not -empty);do 
 		echo $(echo "$themes"| awk -F '/' 'NF == 5 {print $4 "/" $5}'); 
+	done;
+}
+magento_projects () {
+	for themes in $(find /shared/httpd/ -mindepth 1 -maxdepth 1 -type d -not -empty);do 
+		echo "${themes##*/}"; 
 	done;
 }
 
@@ -169,6 +175,17 @@ magento_restore () {
 	mysql -e "update $database.core_config_data set value = 'http://$database.loc/media/' where path like '%base_media_url';";
 	magento_disable_sign "$database";
 	magento_cache;
+}
+update_github_token () {
+	new_link="https://$GITHUB_USER:$1@github.com/belugait";
+	for project in $(magento_projects); do
+		if [ -d "/shared/httpd/$project/$project" ]; then
+			repoFull="$(git -C "/shared/httpd/$project/$project" remote -v)";
+			repoFull="${repoFull##*/}";
+			repo="$(echo "$repoFull" | awk -F "." "{print $1}")";
+			git -C "/shared/httpd/$project/$project" remote set-url origin "$new_link/$repo.git";
+		fi;
+	done;
 }
 
 echo "=========================================================================================================";
