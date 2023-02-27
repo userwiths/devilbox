@@ -30,6 +30,10 @@ alias magento_update='update';
 alias magento_cache='cache';
 alias magento_disable_cache='php bin/magento cache:disable';
 
+current_dir_name() {
+	echo "${PWD##*/}";
+}
+
 magento_modules_enable () {
 	php bin/magento module:enable $(php bin/magento module:status | grep "$1");
 }
@@ -37,6 +41,13 @@ magento_modules_disable () {
 	php bin/magento module:disable $(php bin/magento module:status | grep "$1");
 }
 magento_user () {
+	if [ -z "$1" ]; then
+		echo "This function expects one(1) parameter.";
+		echo "The suplied parameter will be used as username, firstname, last name and during email as follows.";
+		echo "[param]@mailinator.com";
+		echo "Please supply a username/parameter.";
+		exit;
+	fi;
 	php bin/magento admin:user:create --admin-user "$1" --admin-password "Qwerty_2_Qwerty" --admin-email "$1@mailinator.com" --admin-firstname="$1" --admin-lastname="$1";
 }
 magento_data () {
@@ -45,7 +56,7 @@ magento_data () {
 }
 magento_disable_sign() {
 	if [ -z "$1" ]; then
-		database="${PWD##*/}";
+		database="$(current_dir_name)";
 	else
 		database="$1";
 	fi;
@@ -61,8 +72,7 @@ magento_themes () {
 	#	echo $(echo "$a" | cut -d"/" -c 3-4); 
 	#done;
 }
-#install_project agrina "https://stiliyantonev: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@github.com/belugait/agrina.git"
-#install_project tnc "https://stiliyantonev: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@github.com/belugait/tnc.git"
+
 magento_install() {
 	# $1 project name.
 	# $2 url
@@ -86,6 +96,7 @@ magento_install() {
 	fi;
 	
 	cd "/shared/httpd/$1/$1"  || exit;
+	# If composer.lock exists 'composer install' *might* throw an error.
 	if [[ -f "composer.lock" ]]; then
 		rm "composer.lock";
 	fi;
@@ -103,6 +114,8 @@ magento_install() {
 	
 	# Disable most non-default modules.
 	php bin/magento module:disable $(php bin/magento module:status | grep "Mageplaza\|Amasty\|TwoFactor\|Beluga");
+
+	# Install project
 	sudo php bin/magento setup:install \
 		--admin-firstname="Admin" --admin-lastname="Admin" \
 		--admin-password="$ADMIN_PASSWORD" --admin-email="s.tonev@beluga.software" --admin-user="$ADMIN_USER" \
@@ -121,19 +134,33 @@ magento_install() {
 	ln -s "$1/pub" htdocs
 }
 magento_dump () {
-	mysqldump "$1" > "dump.$1.sql";
+	if [ -z "$1" ]; then
+		echo "Did not find expected parameter: project/database name.";
+		database="$(current_dir_name)";
+		echo "Attempting dump with database: $database";
+	else
+		database="$1";
+	fi;
+	mysqldump "$database" > "dump.$database.sql";
 }
 magento_restore () {
 	if [ -z "$2" ]; then
-		database="${PWD##*/}";
-		mysql "$database" < "$1";
+		database="$(current_dir_name)";
+		restore_file="$1";
 	else
 		database="$1";
-		mysql "$1" < "$2";
+		restore_file="$2";
 	fi;
-	
+	 
+	sed -i "s/COLLATE=utf8mb4_0900_ai_ci//g" "$restore_file";
+	mysql "$database" < "$restore_file";
 	mysql -e "update $database.core_config_data set value = '$ELASTIC_SERVER' where path like '%elastic%server_host%';";
 	mysql -e "update $database.core_config_data set value = 'http://$database.loc/' where path like '%base_url';";
 	mysql -e "update $database.core_config_data set value = 'http://$database.loc/static/' where path like '%base_static_url';";
 	mysql -e "update $database.core_config_data set value = 'http://$database.loc/media/' where path like '%base_media_url';";
 }
+
+echo "=========================================================================================================";
+echo "Greetings, this shell has a few shortcuts related to Magento 2 development.";
+echo "You can write 'magento' and hit [TAB] twice to see them.";
+echo "=========================================================================================================";
