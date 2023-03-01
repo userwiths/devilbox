@@ -239,7 +239,7 @@ magento_install() {
 	# Sleep, cause its too quick to notice the changes sometimes.
 	sleep 2;
 	# Disable modules that DO NOT contain Magento in them.
-	php bin/magento module:disable $(php bin/magento module:status | grep -v "Magento\|List of");
+	php bin/magento module:disable $(php bin/magento module:status | grep -v "Magento\|List of\|None") Magento_TwoFactorAuth;
 
 	# Install project
 	php bin/magento setup:install \
@@ -259,7 +259,7 @@ magento_install() {
 	magento_disable_sign "$1";
 
 	# Enable modules that DO NOT contain Magento in them.
-	php bin/magento module:enable $(php bin/magento module:status | grep  -v "Magento\|List of");
+	php bin/magento module:enable $(php bin/magento module:status | grep  -v "Magento\|List of\|None\|TwoFactorAuth");
 	magento_rebuild;
 	
 	# devilbox specific.
