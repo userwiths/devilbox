@@ -9,8 +9,8 @@ export ADMIN_PASSWORD="Qwerty_2_Qwerty";
 export BACKEND_DEPLOY_LANGUAGES="en_US";
 export FRONTEND_DEPLOY_LANGUAGES="bg_BG en_US";
 export GITHUB_USER="stiliyantonev";
-export GITHUB_TOKEN="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";
-export GITHUB_ORGANIZATION="belugait";
+export GITHUB_TOKEN="token goes here";
+export GITHUB_ORGANIZATION="org goes here";
 export ROOT_DIR="/shared/httpd";
 export SYM_LINK_NAME="htdocs";
 
@@ -355,13 +355,13 @@ magento_install() {
 	fi;
 	
 	# In most cases this module is missing pub folder.
-	if [ -f "app/code/Amasty/Xsearch" ]; then
+	if [ -d "app/code/Amasty/Xsearch" ]; then
 		if [ ! -f "app/code/Amasty/Xsearch/pub" ]; then
 			mkdir app/code/Amasty/Xsearch/pub;
 		fi;
 	fi;
 	# In most cases this module is missing pub folder.
-	if [ -f "app/code/Amasty/Shopby" ]; then
+	if [ -d "app/code/Amasty/Shopby" ]; then
 		if [ ! -f "app/code/Amasty/Shopby/pub" ]; then
 			mkdir app/code/Amasty/Shopby/pub;
 		fi;
