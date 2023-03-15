@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export MYSQL_SERVER="172.16.238.12";
 export ELASTIC_SERVER="172.16.238.26";
@@ -6,10 +6,20 @@ export MYSQL_USER="root";
 export MYSQL_PASSWORD="root";
 export ADMIN_USER="s.tonev";
 export ADMIN_PASSWORD="Qwerty_2_Qwerty";
-export DEPLOY_LANGUAGES="bg_BG en_US";
-export GITHUB_USER="username goes here";
-export GITHUB_TOKEN="token goes here";
-export GITHUB_ORGANIZATION="organization goes here";
+export BACKEND_DEPLOY_LANGUAGES="en_US";
+export FRONTEND_DEPLOY_LANGUAGES="bg_BG en_US";
+export GITHUB_USER="stiliyantonev";
+export GITHUB_TOKEN="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";
+export GITHUB_ORGANIZATION="belugait";
+export ROOT_DIR="/shared/httpd";
+export SYM_LINK_NAME="htdocs";
+
+# Affects the symlink generation.
+export USE_NGINX=1;
+
+shopt -s autocd # change to named directory
+shopt -s cdspell # autocorrects cd misspellings
+
 
 alias echo="echo -e";
 alias magento_access='chmod -R 777 {var,generated,pub,vendor,app/etc}';
@@ -34,9 +44,58 @@ current_dir_name() {
 	echo "${PWD##*/}";
 }
 
+project_install () {
+    if [ -f "composer.json" ]; then
+        composer_exec install;
+    fi;
+    if [ -f "package.json" ]; then
+        npm install;
+    fi;
+    if [ -f "yarn.lock" ]; then
+        yarn install;
+    fi;
+    if [ -f "requirements.txt" ]; then
+        pip install -r requirements.txt;
+    fi;
+    if [ -f "nuget.config" ]; then
+        dotnet restore;
+    fi;
+}
+
+project_update () {
+    if [ -f "composer.json" ]; then
+        composer_exec update;
+    fi;
+    if [ -f "package.json" ]; then
+        npm update;
+    fi;
+    if [ -f "yarn.lock" ]; then
+        yarn upgrade;
+    fi;
+    if [ -f "requirements.txt" ]; then
+        pip install -r requirements.txt;
+    fi;
+    if [ -f "nuget.config" ]; then
+        dotnet restore;
+    fi;
+}
+
+# Install composer
+# try to get #installer from the page ?
+composer_install () {
+	php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');";
+	php composer-setup.php;
+	php -r "unlink('composer-setup.php');";
+}
+
 # Tries to install using ComposerV2. If fails, tries with ComposerV1. If fails again print error. 
 # Always returns to ComposerV2.
 composer_exec() {
+	if [ ! -f "composer.json" ]; then
+		echo "No composer.json file found.";
+		return 1;
+	fi;
+
 	if [ "$1" != "install" ]; then
 		if [ "$1" != "update" ]; then
 			echo "Unrecognized argument $1.";
@@ -44,16 +103,12 @@ composer_exec() {
 			return 1;
 		fi;
 	fi;
-	composer self-update --2;
-	if ! composer $1; then
+	if ! composer-2 $1; then
 		echo "ComposerV2 install failed. Trying with ComposerV1";
-		composer self-update --1;
-		if ! composer $1; then
+		if ! composer-1 $1; then
 			echo "Both composer versions failed. Returning to ComposerV2";
-			composer self-update --2;
 			return 1;
 		fi;
-		composer self-update --2;
 	fi;
 }
 
@@ -77,17 +132,14 @@ composer_verify_repos () {
 
 		name=$(echo "$type_left"|awk -F '\.' '{print $2}');
 
-		if [ -z "$url_left" ]; then
-			continue;
-		fi;
+		[ -z "$url_left" ] && continue;
 
 		if [ "$type_right" == "artifact" ]; then
-			if [ ! -f "$url_right"  ]; then
+			[ ! -f "$url_right"  ] && {
 				echo "File not found: $url_right";
 				echo "Removing repo: $name";
 				composer config repositories.$name --unset;
-			fi;
-			continue;
+			};
 		fi;
 	done;
 }
@@ -106,12 +158,10 @@ magento_preset_extensions () {
 whitelist_single_module () {
 	if [ -f "$1/etc/db_schema.xml" ]; then
 		moduleName=$(echo "$1" | awk -F '/' 'NF == 4 {print $3 "_" $4}');
-		if [ ! -f "$1/etc/db_schema_whitelist.json" ]; then
+		[ ! -f "$1/etc/db_schema_whitelist.json" ] && {
 			echo "Whitelisting module: $moduleName";
 			magento setup:db-declaration:generate-whitelist --module-name="$1";
-		else
-			echo "Already whitelisted: $moduleName";
-		fi;
+		} || echo "Already whitelisted: $moduleName";
 	fi;
 }
 
@@ -120,16 +170,14 @@ magento_whitelist () {
 	find app/code -maxdepth 2 -type d -not -empty -exec bash -c "whitelist_single_module $1" \;
 }
 magento_rebuild () {
-	if [ ! -z "$1" ]; then
-		cd "/shared/httpd/$1/$1" || return 1;
-	fi;
+	[ ! -z "$1" ] && cd "$ROOT_DIR/$1/$1";
 	rm -fr generated/code/*;
 	magento_access;
 	# Only rebuild if required.
-	if [ "$(magento setup:db:status --no-ansi)" != "All modules are up to date." ]; then
+	[ "$(magento setup:db:status --no-ansi)" != "All modules are up to date." ] && {
 		magento_whitelist;
 		magento setup:upgrade;
-	fi;
+	};
 	magento setup:di:compile;
 	magento_deploy_themes;
 	cache;
@@ -140,10 +188,10 @@ magento_rebuild_styleless () {
 	rm -fr generated/code/*;
 	chmod -R 777 generated;
 	# Only rebuild if required.
-	if [ "$(magento setup:db:status --no-ansi)" != "All modules are up to date." ]; then
+	[ "$(magento setup:db:status --no-ansi)" != "All modules are up to date." ] && {
 		magento_whitelist;
 		magento setup:upgrade;
-	fi;
+	};
 	magento setup:di:compile;
 	cache;
 }
@@ -183,11 +231,7 @@ magento_data () {
 
 # Disable CSS/JS versioning.
 magento_disable_sign() {
-	if [ -z "$1" ]; then
-		database="$(current_dir_name)";
-	else
-		database="$1";
-	fi;
+	[ -z "$1" ] && database="$(current_dir_name)" || database="$1";
 	if ! mysql -e "insert into $database.core_config_data (config_id, scope, scope_id, path, value) values (null, 'default', 0, 'dev/static/sign', 0);" 2> /dev/null; then
 		echo "Row already exists: Updating ...";
 		mysql -e "update $database.core_config_data set value = 0 where path = 'dev/static/sign';";
@@ -205,19 +249,22 @@ magento_frontend_themes () {
 	for theme in $(echo "$used_themes" | grep -v "theme_path"); do
 		deploy_single_theme frontend "$theme";
 	done;
+}
 
-	# Files are not always present/not-empty, prefer database when available.
-	#if [ $(number_of_themes frontend) -lt 3 ]; then
-	#	find app/design/frontend/ -maxdepth 2 -type d -not -empty -exec bash -c "deploy_single_theme frontend $1" \;
-	#else
-	#	find app/design/frontend/ -maxdepth 2 -type d -not -empty -not -name "luma" -not -name "blank" -exec bash -c "deploy_single_theme frontend $1" \;
-	#fi;
+# Get used languages/locales from DB.
+magento_frontend_themes_language () {
+	result="";
+	used_themes=$(mysql "$(current_dir_name)" -e "select value from core_config_data where path = 'general/locale/code';");
+	for theme in $(echo "$used_themes" | grep -v "value"); do
+		result="$result $theme";
+	done;
+	echo $result;
 }
 
 # Deploy only backend themes.
 magento_backend_themes () {
 	if [ $(number_of_themes adminhtml) -gt 0 ]; then
-		find app/design/adminhtml/ -maxdepth 2 -type d -not -empty -exec bash -c "deploy_single_theme adminhtml $1" \;
+		find app/design/adminhtml/ -maxdepth 2 -mindepth 2 -type d -not -empty -exec bash -c "deploy_single_theme adminhtml $1" \;
 	else
 		deploy_single_theme adminhtml;
 	fi;
@@ -225,12 +272,12 @@ magento_backend_themes () {
 
 # Empty the magento log files.
 magento_logs_clear () {
-	find var/log -name "./*.log" -exec bash -c "echo > $1" \;
+	find var/log -name "*.log" -type f -exec bash -c "echo > $1" \;
 }
 
 # List all found magento projects. Based on `bin/magento` file existance.
 magento_projects () {
-	find /shared/httpd/ -mindepth 1 -maxdepth 1 -type d -not -empty -exec bash -c '\
+	find "$ROOT_DIR" -mindepth 1 -maxdepth 1 -type d -not -empty -exec bash -c '\
 		themes="$1";\
 		project="${themes##*/}";\
 		if [ -f "$themes/$project/bin/magento" ]; then\
@@ -240,12 +287,18 @@ magento_projects () {
 
 # Deploy a single theme.
 deploy_single_theme () {
+	if [ "$1" == "frontend" ]; then
+		lang="$FRONTEND_DEPLOY_LANGUAGES $(magento_frontend_themes_language)";
+	else
+		lang=$BACKEND_DEPLOY_LANGUAGES;
+	fi;
+
 	if [ -z "$2" ]; then 
-		magento setup:static-content:deploy -f --area $1 $DEPLOY_LANGUAGES;
+		magento setup:static-content:deploy -f --area $1 $lang;
 	else
 		# Frontend Themes
-		if ! magento setup:static-content:deploy -f --area $1 --theme "$theme" --no-parent $DEPLOY_LANGUAGES; then
-			magento setup:static-content:deploy -f --area $1 --theme "$theme" $DEPLOY_LANGUAGES;
+		if ! magento setup:static-content:deploy -f --area $1 --theme "$theme" --no-parent $lang; then
+			magento setup:static-content:deploy -f --area $1 --theme "$theme" $lang;
 		fi;
 	fi;
 }
@@ -268,26 +321,26 @@ magento_install() {
 		return 1;
 	else
 		project="$1";
-		if [ -z "$2" ]; then
-			repo_url="$(get_github_repo "$project")"; 
+		if [ -z "$2" ]; then 
+			[ ! -d "$ROOT_DIR/$project/$project/.git" ] && repo_url="$(get_github_repo "$project")";
 		else
-			repo_url="$2";		
+			repo_url="$2";
 		fi;
 	fi;
 	echo "URL: $repo_url";
-	cd /shared/httpd || return 1;
+	cd "$ROOT_DIR" || return 1;
 	
 	if [[ ! -d "$project/$project" ]]; then
-		if [[ -d "/shared/https/$project" ]]; then
+		if [ -d "$ROOT_DIR/$project" ]; then
 			cd "$project" || return 1;
 		else
-			mkdir "$project";
+			mkdir "$project"; 
 			cd "$project"  || return 1;
 		fi;
 		git clone "$repo_url" "$project";
 	fi;
 	
-	cd "/shared/httpd/$project/$project"  || return 1;
+	cd "$ROOT_DIR/$project/$project"  || return 1;
 	# If composer.lock exists 'composer install' *might* throw an error.
 	if [[ -f "composer.lock" ]]; then
 		rm "composer.lock";
@@ -302,18 +355,17 @@ magento_install() {
 	fi;
 	
 	# In most cases this module is missing pub folder.
-	if [[ -f "app/code/Amasty/Xsearch" ]]; then
-		if [[ ! -f "app/code/Amasty/Xsearch/pub" ]]; then
+	if [ -f "app/code/Amasty/Xsearch" ]; then
+		if [ ! -f "app/code/Amasty/Xsearch/pub" ]; then
 			mkdir app/code/Amasty/Xsearch/pub;
 		fi;
 	fi;
 	# In most cases this module is missing pub folder.
-	if [[ -f "app/code/Amasty/Shopby" ]]; then
-		if [[ ! -f "app/code/Amasty/Shopby/pub" ]]; then
+	if [ -f "app/code/Amasty/Shopby" ]; then
+		if [ ! -f "app/code/Amasty/Shopby/pub" ]; then
 			mkdir app/code/Amasty/Shopby/pub;
 		fi;
 	fi;
-	
 	# Sleep, cause its too quick to notice the changes sometimes.
 	sleep 2;
 	# Disable modules that DO NOT contain Magento in them.
@@ -341,19 +393,17 @@ magento_install() {
 	magento_rebuild;
 	
 	# devilbox specific.
-	cd "/shared/httpd/$project" || return 1;
-	ln -s "$project/pub" htdocs
+	cd "$ROOT_DIR/$project" || return 1;
+	if [ $USE_NGINX == 1 ]; then
+		ln -s "$project/pub" "$SYM_LINK_NAME";
+	else
+		rm /var/www/html && ln -s "$project/pub" "/var/www/html";
+	fi;
 }
 
 # Dump mysql db.
 magento_dump () {
-	if [ -z "$1" ]; then
-		echo "Did not find expected parameter: project/database name.";
-		database="$(current_dir_name)";
-		echo "Attempting dump with database: $database";
-	else
-		database="$1";
-	fi;
+	[ -z "$1" ] && database="$(current_dir_name)" || database="$1";
 	mysqldump "$database" > "dump.$database.sql";
 }
 
@@ -379,11 +429,11 @@ magento_restore () {
 update_github_token () {
 	new_link="https://$GITHUB_USER:$1@github.com/belugait";
 	for project in $(magento_projects); do
-		if [ -d "/shared/httpd/$project/$project" ]; then
-			repoFull="$(git -C "/shared/httpd/$project/$project" remote -v)";
+		if [ -d "$ROOT_DIR/$project/$project" ]; then
+			repoFull="$(git -C "$ROOT_DIR/$project/$project" remote -v)";
 			repoFull="${repoFull##*/}";
 			repo="$(echo "$repoFull" | awk -F "." "{print $1}")";
-			git -C "/shared/httpd/$project/$project" remote set-url origin "$new_link/$repo.git";
+			git -C "$ROOT_DIR/$project/$project" remote set-url origin "$new_link/$repo.git";
 		fi;
 	done;
 }
@@ -395,7 +445,7 @@ get_admin_url () {
 # Get admin url for all found magento projects.
 magento_panels_urls () {
 	printf "%10s | %10s | %20s\n" "PROJECT" "URL" "ADMIN URL";
-	find /shared/httpd/ -mindepth 1 -maxdepth 1 -type d -not -empty -exec bash -c 'get_single_admin_url $1' \;
+	find "$ROOT_DIR" -mindepth 1 -maxdepth 1 -type d -not -empty -exec bash -c 'get_single_admin_url $1' \;
 }
 get_single_admin_url () {
 	path="$1";
@@ -421,6 +471,56 @@ get_github_repo_url () {
 	head -n 1;
 }
 
+magento_info () {
+	url="http://dice.loc/admin_1e7b2b/beluga_preset/preset/index/key/8912d89095641a627a7304ef97d1a0540232dd5b9fbe13f0afafcbbad79bb3bf/";
+	project="$(echo "$url" | awk -F '/' '{print $3}' | awk -F '.' '{print $1}')";
+	area="frontend";
+	if [ "$(echo "$url" | awk -F '/' '{print $4}' | awk -F '_' '{print $1}')" == 'admin' ]; then
+		area="adminhtml";
+		module="$(echo "$url" | awk -F '/' '{print $5}')";
+		sub_folder="$(echo "$url" | awk -F '/' '{print $6}')";
+		endpoint="$(echo "$url" | awk -F '/' '{print $7}')";
+
+		module_folder="$(grep -Rl "$module" /shared/httpd/$project/$project/{app/code/,vendor/magento/module-*} | grep routes | awk -F '/' '{print "/" $2 "/" $3 "/" $4 "/" $5 "/" $6 "/" $7 "/" $8 "/" $9}')";
+		if [ "$area" == "adminhtml" ]; then
+			endpoint_folder="$(find "$module_folder/Controller/Adminhtml" -iname "$sub_folder")";
+		else
+			endpoint_folder="$(find "$module_folder/Controller/" -iname "$sub_folder")";
+		fi;
+		endpoint_file="$(find "$endpoint_folder" -iname "$endpoint.php")";
+	fi;
+	echo "Project: $project";
+	echo "Module Path: $module_folder";
+	echo "Endpoint File: $endpoint_file";
+	[ -f "$module_folder/view/$area/layout/${module}_${sub_folder}_${endpoint}.xml" ] && echo "Used Layout: $module_folder/view/$area/layout/${module}_${sub_folder}_${endpoint}.xml";
+}
+
+get_all_layouts () {
+	if [ -z "$1" ]; then
+		files=$(find {app/,vendor/magento/module-*} -not -path "*/web/*" -path "*/layout/*.xml" -type f -exec basename {} \;|sort|uniq );
+	else
+		files=$(find {app/,vendor/magento/module-*} -not -path "*/web/*" -path "$1/layout/*.xml" -type f -exec basename {} \;|sort|uniq );
+	fi;
+	echo "$files";
+}
+
+get_theme_layouts () {
+	find app/design -not -path "*/web/*" -path "*/layout/*.xml" -type f;
+}
+get_code_layouts () {
+	find app/code -not -path "*/web/*" -path "*/layout/*.xml" -type f | sort | uniq;
+}
+# find {app,vendor/} -type f -path "*[frontend,adminhtml]/layout*" -exec grep -Pio 'name="\K[^"]*' {} \;| sort | uniq -c | sort
+# find app/design/frontend/Beluga/BMarket/*/layout/*.xml -name *.xml -exec xmlstarlet sel -t -m "//*[@name]" -v "@name" -n {} \;|sort|uniq
+no_argument_name() {
+	grep -v "argument\|item" "$1" | grep -Pio 'name="\K[^"]*';
+}
+
+get_all_named_xml () {
+	find {app,vendor/} -type f -path "*[frontend,adminhtml]/layout*" -exec no_argument_name {} \;| sort | uniq -c | sort;
+}
+
+export -f no_argument_name;
 export -f magento_install;
 export -f magento_rebuild;
 export -f get_single_admin_url;
